@@ -1,0 +1,46 @@
+{
+  "name": "trade-run-wagmi",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:next\" \"nodemon backend/index.js\"",
+    "dev:next": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.1.1",
+    "@mui/styled-engine-sc": "^6.1.1",
+    "@mui/x-charts": "^7.18.0",
+    "@tanstack/react-query": "5.45.1",
+    "bootstrap": "^5.3.3",
+    "ethers": "^6.13.2",
+    "next": "14.2.4",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.5",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.3.0",
+    "react-slick": "^0.30.2",
+    "react-toastify": "^10.0.5",
+    "slick-carousel": "^1.8.1",
+    "styled-components": "^6.1.13",
+    "viem": "latest",
+    "wagmi": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.10",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@wagmi/cli": "latest",
+    "bufferutil": "^4.0.8",
+    "concurrently": "^9.0.1",
+    "encoding": "^0.1.13",
+    "lokijs": "^1.5.12",
+    "pino-pretty": "^10.3.1",
+    "supports-color": "^9.4.0",
+    "typescript": "^5.4.5",
+    "utf-8-validate": "^5.0.2"
+  }
+}
