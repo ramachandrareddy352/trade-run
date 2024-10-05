@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, Component } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Card, Button, Offcanvas, Form } from "react-bootstrap";
+import { Card, Button, Offcanvas, Form, Table } from "react-bootstrap";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Modal from "react-bootstrap/Modal";
+import { FaCartArrowDown } from "react-icons/fa";
+import { LiaFileContractSolid } from "react-icons/lia";
+import { PiGpsFixBold } from "react-icons/pi";
 
 export default function Futures() {
   const [items, setItems] = useState<Number[]>([1, 2, 3, 4, 5, 56]);
@@ -32,7 +35,7 @@ export default function Futures() {
     centerMode: true,
     infinite: true,
     centerPadding: "60px",
-    slidesToShow: 3,
+    slidesToShow: 2,
     speed: 500,
     autoplay: true,
   };
@@ -128,13 +131,15 @@ export default function Futures() {
             <br />
             <br />
             <br />
-            <p>
+            <p style={{ textIndent: "50px" }}>
               Create you To use a numbers array with useState in Next.js, you
               can follow these steps. This involves initializing the state with
               an array of numbers and providing a way to update that state.To
               use a numbers array with useState in Next.js, you can follow these
               steps. This involves initializing the state with an array of
-              numbers and providing a way to update that state.
+              numbers and providing a way to update that state.This involves
+              initializing the state with an array of numbers and providing a
+              way to update that state.
             </p>
             <br />
             <Button
@@ -158,34 +163,119 @@ export default function Futures() {
             <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
-                <div key={idx} style={{ width: 30 }}>
+                <div key={idx} style={{ width: 70 }}>
                   <Card
                     style={{
-                      width: "18rem",
+                      width: "30rem",
                       boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                       margin: 5,
                     }}
                   >
                     <Card.Body>
-                      <Card.Title>Card Title</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        Card Subtitle
-                      </Card.Subtitle>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>#1(ID)</Card.Title>
+                        <span style={{ color: "grey", fontSize: "12px" }}>
+                          * ACTIVE
+                        </span>
+                      </div>
+                      <div
+                        className="d-flex justify-content-between"
+                        style={{ color: "grey" }}
+                      >
+                        <span>Created Date</span>
+                        <span>Expiration Date</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-3">
+                        <h6>02/10/24-11:23</h6>
+                        <h6>15/10/24-12:00</h6>
+                      </div>
                       <Card.Text>
-                        <p>BTC-1</p>
-                        <p>ETH-2</p>
-                        <p>BTC-1</p>
-                        <p>ETH-2</p>
-                        <p>BTC-1</p>
-                        <p>ETH-2</p>
+                        <Table striped bordered hover size="sm">
+                          <thead>
+                            <tr>
+                              <th>COLLATERAL</th>
+                              <th>AMOUNT</th>
+                              <th>Inital PRICE</th>
+                              <th>Current PRICE</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Otto</td>
+                              <td>@mdo</td>
+                              <td>$12,456.34</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>Thornton</td>
+                              <td>@fat</td>
+                              <td>$2,456.97</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>3</td>
+                              <td>@twitter</td>
+                              <td>$56.23</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
                       </Card.Text>
-                      <Button variant="primary" onClick={handleShow}>
-                        Buy Contract
-                      </Button>
-                      <Button variant="primary" className="ml-3">
-                        Add Cart
-                      </Button>
-                      <p className="text-center mt-3">more info &rarr;</p>
+                      <div className="d-flex justify-content-around">
+                        <span>Initial Price</span>
+                        <h6>$23,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-evenly">
+                        <span>Strike Price</span>
+                        <h6>$26,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Margin to Pay</span>
+                        <h6>$3,477(5%)</h6>
+                      </div>
+                      <div className="d-flex justify-content-around my-2">
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Buy Contract
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Settle Contract
+                        </Button>
+                        <Button>
+                          <FaCartArrowDown />
+                        </Button>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span>more info &rarr;</span>
+                      </div>
                     </Card.Body>
                   </Card>
                 </div>
@@ -195,21 +285,119 @@ export default function Futures() {
 
           <div className="container mt-5">
             <h1>Bought Contracts</h1>
+            <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
                 <div key={idx} style={{ width: 30 }}>
-                  <Card style={{ width: "18rem" }}>
+                  <Card
+                    style={{
+                      width: "30rem",
+                      boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
+                      margin: 5,
+                    }}
+                  >
                     <Card.Body>
-                      <Card.Title>Card Title</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        Card Subtitle
-                      </Card.Subtitle>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>#1(ID)</Card.Title>
+                        <span style={{ color: "grey", fontSize: "12px" }}>
+                          * ACTIVE
+                        </span>
+                      </div>
+                      <div
+                        className="d-flex justify-content-between"
+                        style={{ color: "grey" }}
+                      >
+                        <span>Created Date</span>
+                        <span>Expiration Date</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-3">
+                        <h6>02/10/24-11:23</h6>
+                        <h6>15/10/24-12:00</h6>
+                      </div>
                       <Card.Text>
-                        Some quick example text to build on the card title and
-                        make up the bulk of the cards content.
+                        <Table striped bordered hover size="sm">
+                          <thead>
+                            <tr>
+                              <th>COLLATERAL</th>
+                              <th>AMOUNT</th>
+                              <th>Inital PRICE</th>
+                              <th>Current PRICE</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Otto</td>
+                              <td>@mdo</td>
+                              <td>$12,456.34</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>Thornton</td>
+                              <td>@fat</td>
+                              <td>$2,456.97</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>3</td>
+                              <td>@twitter</td>
+                              <td>$56.23</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
                       </Card.Text>
-                      <Button variant="primary">Card Link</Button>
-                      <Button variant="primary">Another Link</Button>
+                      <div className="d-flex justify-content-between">
+                        <span>Initial Price</span>
+                        <h6>$23,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Strike Price</span>
+                        <h6>$26,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Margin to Pay</span>
+                        <h6>$3,477(5%)</h6>
+                      </div>
+                      <div className="d-flex justify-content-around my-2">
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Drop Contract
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Settle Contract
+                        </Button>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span>more info &rarr;</span>
+                      </div>
                     </Card.Body>
                   </Card>
                 </div>
@@ -219,21 +407,103 @@ export default function Futures() {
 
           <div className="container mt-5">
             <h1>Setteled Contracts</h1>
+            <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
                 <div key={idx} style={{ width: 30 }}>
-                  <Card style={{ width: "18rem" }}>
+                  <Card
+                    style={{
+                      width: "30rem",
+                      boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
+                      margin: 5,
+                    }}
+                  >
                     <Card.Body>
-                      <Card.Title>Card Title</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        Card Subtitle
-                      </Card.Subtitle>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>#1(ID)</Card.Title>
+                        <span style={{ color: "grey", fontSize: "12px" }}>
+                          * ACTIVE
+                        </span>
+                      </div>
+                      <div
+                        className="d-flex justify-content-between"
+                        style={{ color: "grey" }}
+                      >
+                        <span>Created Date</span>
+                        <span>Expiration Date</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-3">
+                        <h6>02/10/24-11:23</h6>
+                        <h6>15/10/24-12:00</h6>
+                      </div>
                       <Card.Text>
-                        Some quick example text to build on the card title and
-                        make up the bulk of the cards content.
+                        <Table striped bordered hover size="sm">
+                          <thead>
+                            <tr>
+                              <th>COLLATERAL</th>
+                              <th>AMOUNT</th>
+                              <th>Inital PRICE</th>
+                              <th>Current PRICE</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Otto</td>
+                              <td>@mdo</td>
+                              <td>$12,456.34</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>Thornton</td>
+                              <td>@fat</td>
+                              <td>$2,456.97</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>3</td>
+                              <td>@twitter</td>
+                              <td>$56.23</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
                       </Card.Text>
-                      <Button variant="primary">Card Link</Button>
-                      <Button variant="primary">Another Link</Button>
+                      <div className="d-flex justify-content-between">
+                        <span>Initial Price</span>
+                        <h6>$23,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Strike Price</span>
+                        <h6>$26,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Margin to Pay</span>
+                        <h6>$3,477(5%)</h6>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span>more info &rarr;</span>
+                      </div>
                     </Card.Body>
                   </Card>
                 </div>
@@ -242,22 +512,104 @@ export default function Futures() {
           </div>
 
           <div className="container my-5">
-            <h1>Expired Contracts</h1>
+            <h1>Closed Contracts</h1>
+            <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
                 <div key={idx} style={{ width: 30 }}>
-                  <Card style={{ width: "18rem" }}>
+                  <Card
+                    style={{
+                      width: "30rem",
+                      boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
+                      margin: 5,
+                    }}
+                  >
                     <Card.Body>
-                      <Card.Title>Card Title</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        Card Subtitle
-                      </Card.Subtitle>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>#1(ID)</Card.Title>
+                        <span style={{ color: "grey", fontSize: "12px" }}>
+                          * ACTIVE
+                        </span>
+                      </div>
+                      <div
+                        className="d-flex justify-content-between"
+                        style={{ color: "grey" }}
+                      >
+                        <span>Created Date</span>
+                        <span>Expiration Date</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-3">
+                        <h6>02/10/24-11:23</h6>
+                        <h6>15/10/24-12:00</h6>
+                      </div>
                       <Card.Text>
-                        Some quick example text to build on the card title and
-                        make up the bulk of the cards content.
+                        <Table striped bordered hover size="sm">
+                          <thead>
+                            <tr>
+                              <th>COLLATERAL</th>
+                              <th>AMOUNT</th>
+                              <th>Inital PRICE</th>
+                              <th>Current PRICE</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Otto</td>
+                              <td>@mdo</td>
+                              <td>$12,456.34</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>Thornton</td>
+                              <td>@fat</td>
+                              <td>$2,456.97</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>3</td>
+                              <td>@twitter</td>
+                              <td>$56.23</td>
+                              <td>
+                                $12,456.34
+                                <span
+                                  style={{ color: "grey", fontSize: "15px" }}
+                                >
+                                  (+0.25%)
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
                       </Card.Text>
-                      <Button variant="primary">Card Link</Button>
-                      <Button variant="primary">Another Link</Button>
+                      <div className="d-flex justify-content-between">
+                        <span>Initial Price</span>
+                        <h6>$23,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Strike Price</span>
+                        <h6>$26,678</h6>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Margin to Pay</span>
+                        <h6>$3,477(5%)</h6>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span>more info &rarr;</span>
+                      </div>
                     </Card.Body>
                   </Card>
                 </div>

@@ -15,7 +15,7 @@ app.get("/api", (req, res) => {
 
 // Available Routes
 app.use("/api/airdrop", require("./routes/airdrop"));
-// app.use("/api/userAirdrop", require("./routes/userAirdrop"));
+app.use("/api/userAirdrop", require("./routes/userAirdrop"));
 
 app.listen(port, () => {
   console.log(`Trade-Run backend listening at http://127.0.0.1:${port}`);

@@ -23,24 +23,9 @@ import {
   formatBigInt,
   formatBigIntForPrice,
 } from "../constants/formatBigIntValues";
+import Link from "next/link";
 
-const getAirdrops = async () => {
-  try {
-    const res = await fetch("http://localhost:3000/api/airdrop", {
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      throw new Error("Failed to get data");
-    }
-    console.log(res.json);
-    return res.json;
-  } catch (error) {
-    console.log(error);
-    console.log("Error in catch");
-  }
-};
-
-export default async function Airdrop() {
+export default function Airdrop() {
   const account = useAccount();
   const {
     data: hash,
@@ -55,17 +40,86 @@ export default async function Airdrop() {
   const [claimer, setClaimer] = useState<string>();
   const [amount, setAmount] = useState<bigint>();
 
-  const airdrops = await getAirdrops();
-  console.log(airdrops);
-
   const claimAirdrop = async () => {
     if (roundID && claimer && amount && account.status === "connected") {
-      writeContract({
-        address: MERKEL_AIRDROP_CONTRACT,
-        abi: merkelAbi,
-        functionName: "claimAirdrop",
-        args: [roundID, `0x${claimer}`, amount, []],
-      });
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:5000/api/userAirdrop/getUserAirdrop/${Number(roundID)}/0x${claimer.slice(0, 42)}`,
+          {
+            method: "GET",
+          }
+        );
+        const json = await response.json();
+        if (json.success) {
+          writeContract({
+            address: MERKEL_AIRDROP_CONTRACT,
+            abi: merkelAbi,
+            functionName: "claimAirdrop",
+            args: [roundID, `0x${claimer}`, amount, json.userAirdrop.proofs],
+          });
+
+          const claimResponse = await fetch(
+            `http://127.0.0.1:5000/api/userAirdrop/claimAirdrop`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                round: Number(roundID),
+                user: `0x${claimer}`,
+                transactionHash: `0x${hash}`,
+              }),
+            }
+          );
+          const claimJson = await claimResponse.json();
+          if (claimJson.success) {
+            toast.success(`Airdrop is claimed successfully`, {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+          } else {
+            toast.error(`${claimJson.error}`, {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+          }
+        } else {
+          toast.error(`${json.error}`, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+        }
+      } catch (error) {
+        toast.error(`${error}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
     } else {
       toast.error(`Fill all the required fields`, {
         position: "top-right",
@@ -84,7 +138,7 @@ export default async function Airdrop() {
     abi: goverenceTokenAbi,
     address: GOVERENCE_TOKEN_CONTRACT,
     functionName: "balanceOf",
-    args: [`0x${account.address}`],
+    args: [`0x${account.address?.toLowerCase}`],
   });
 
   const price = useReadContract({
@@ -170,9 +224,6 @@ export default async function Airdrop() {
         pauseOnHover
         theme="light"
       />
-      <Button variant="secondary" onClick={getAirdrops}>
-        Get Airdrops
-      </Button>
       <div>
         <div className="container">
           <br />
@@ -256,7 +307,7 @@ export default async function Airdrop() {
                   {formatBigInt(
                     goverenceTokenBalance.data
                       ? goverenceTokenBalance.data
-                      : BigInt(0),
+                      : BigInt(10),
                     18
                   )}
                 </h6>
@@ -348,9 +399,17 @@ export default async function Airdrop() {
                   ]}
                   height={200}
                 />
-                <p style={{ marginLeft: "250px", marginTop: "30px" }}>
-                  Statistical data &rarr;
-                </p>
+                <Link href="/">
+                  <p
+                    style={{
+                      marginLeft: "250px",
+                      marginTop: "30px",
+                      color: "white",
+                    }}
+                  >
+                    Statistical data &rarr;
+                  </p>
+                </Link>
               </div>
             </div>
           </div>

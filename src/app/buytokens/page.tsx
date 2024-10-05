@@ -5,31 +5,37 @@ import { Button, Form, InputGroup } from "react-bootstrap";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import { desktopOS, platforms, valueFormatter } from "../airdrop/webUsageStats";
 import {
-  MERKEL_AIRDROP_CONTRACT,
   GOVERENCE_TOKEN_CONTRACT,
   PRESALE_CONTRACT,
 } from "../constants/contractAddress";
 import { presaleAbi } from "@/abi/presaleAbi";
 import { goverenceTokenAbi } from "@/abi/goverenceTokenAbi";
+import { erc20PermitAbi } from "@/abi/erc20PermitAbi";
 import {
   useAccount,
   useConnect,
   useReadContract,
   useWriteContract,
+  useSignTypedData,
+  useBlock,
 } from "wagmi";
 import {
   formatBigInt,
   formatBigIntForPrice,
 } from "../constants/formatBigIntValues";
+import { sepolia } from "viem/chains";
 
 export default function BuyTokens() {
   const account = useAccount();
+  const blockNumber = useBlock();
   const { connectors, connect, status, error, isError } = useConnect();
 
   const [amount, setAmount] = useState<bigint>();
   const [collateral, setCollateral] = useState<String>();
+  const [claimer, setClaimer] = useState<String>();
+
+  console.log(blockNumber.data?.timestamp);
 
   const {
     data: hash,
@@ -37,23 +43,166 @@ export default function BuyTokens() {
     isError: writeIsError,
     error: writeError,
   } = useWriteContract();
+  const { signTypedDataAsync } = useSignTypedData(); // To sign the typed data
+  const [signature, setSignature] = useState<String>("");
 
-  const claimAirdrop = async () => {
-    if (amount && collateral && account.status === "connected") {
-      writeContract({
-        address: PRESALE_CONTRACT,
-        abi: presaleAbi,
-        functionName: "buyToken",
-        args: [
-          `0x${collateral}`,
-          `0x${account.address}`,
-          amount,
-          BigInt(0),
-          0,
-          "0x12",
-          "0x12",
-        ],
+  const handlePermitSign = async () => {
+    const tokenAddress = "YourTokenAddress";
+    const spender = "0xSpenderAddress";
+    const nonce = 0; // Get this from the token contract (EIP-2612's `nonces` function)
+    const deadline = Math.floor(Date.now() / 1000) + 3600; // One hour from now
+
+    // Create the domain for EIP-712
+    const domain = {
+      name: "Your Token Name",
+      version: "1",
+      chainId: 1, // Mainnet or the chain ID you're working on
+      verifyingContract: `0x${tokenAddress}`,
+    };
+
+    // Create the message (permit)
+    const value = {
+      owner: account.address,
+      spender: spender,
+      value: BigInt(100), // Number of tokens to approve
+      nonce: nonce,
+      deadline: deadline,
+    };
+
+    // The type of the permit (EIP-712 typed data structure)
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+
+    try {
+      // Sign the typed data (EIP-2612 permit)
+      const signature = await signTypedDataAsync({
+        domain,
+        types,
+        value,
       });
+      console.log("Signature:", signature);
+      setSignature(`0x${signature}`);
+
+      // Now you can use this `signature` to submit it on-chain to the contract
+    } catch (error) {
+      console.error("Error signing permit:", error);
+    }
+  };
+
+  const buyTokensWithSignature = async () => {
+    if (amount && collateral && account.status === "connected") {
+      try {
+        await handlePermitSign();
+
+        writeContract({
+          address: PRESALE_CONTRACT,
+          abi: presaleAbi,
+          functionName: "buyToken",
+          args: [
+            `0x${collateral}`,
+            `0x${claimer}`,
+            BigInt(amount ? amount : 0),
+            BigInt(0),
+            0,
+            "0x00",
+            "0x00",
+          ],
+        });
+
+        toast.success(`Goverence Tokens bought successfully`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      } catch (error) {
+        toast.error(`Failed to sign the transaction`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
+    } else {
+      toast.error(`Fill all the required fields`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  };
+
+  const buyTokensWithApprove = async () => {
+    if (amount && collateral && account.status === "connected") {
+      try {
+        writeContract({
+          address: `0x${collateral}`,
+          abi: erc20PermitAbi,
+          functionName: "approve",
+          args: [
+            `0x${PRESALE_CONTRACT}`,
+            BigInt(
+              115792089237316195423570985008687907853269984665640564039457584007913129639935
+            ),
+          ],
+        });
+        writeContract({
+          address: PRESALE_CONTRACT,
+          abi: presaleAbi,
+          functionName: "buyToken",
+          args: [
+            `0x${collateral}`,
+            `0x${claimer}`,
+            BigInt(amount ? amount : 0),
+            BigInt(0),
+            0,
+            "0x00",
+            "0x00",
+          ],
+        });
+
+        toast.success(`Goverence Tokens bought successfully`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      } catch (error) {
+        toast.error(`Failed to sign the transaction`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
     } else {
       toast.error(`Fill all the required fields`, {
         position: "top-right",
@@ -102,42 +251,55 @@ export default function BuyTokens() {
   const platform1 = [
     {
       label: "Tokens solded",
-      value: Number(
-        formatBigInt(tokenSolded.data ? tokenSolded.data : BigInt(0), 18)
-      ),
+      value:
+        Number(
+          formatBigInt(tokenSolded.data ? tokenSolded.data : BigInt(0), 18)
+        ) + 22,
     },
     {
       label: "Tokens UnSolded",
-      value: Number(
-        formatBigInt(
-          tokenSolded.data
-            ? BigInt(350000000000000000000000000) - tokenSolded.data
-            : BigInt(0),
-          18
-        )
-      ),
+      value:
+        Number(
+          formatBigInt(
+            tokenSolded.data
+              ? BigInt(350000000000000000000000000) - tokenSolded.data
+              : BigInt(0),
+            18
+          )
+        ) + 35,
     },
   ];
   const platform2 = [
     {
-      label: "Tokens solded",
-      value: Number(
-        formatBigInt(tokenSolded.data ? tokenSolded.data : BigInt(0), 18)
-      ),
+      label: "USDC",
+      value: 467,
     },
     {
-      label: "Tokens UnSolded",
-      value: Number(
-        formatBigInt(
-          tokenSolded.data
-            ? BigInt(350000000000000000000000000) - tokenSolded.data
-            : BigInt(22),
-          18
-        )
-      ),
+      label: "DAI",
+      value: 120,
+    },
+    {
+      label: "WETH",
+      value: 47,
+    },
+    {
+      label: "WBTC",
+      value: 12,
+    },
+    {
+      label: "LINK",
+      value: 267,
+    },
+    {
+      label: "USDT",
+      value: 520,
     },
   ];
-  const valueFormatter = (item: { value: number }) => `${item.value}`;
+  const valueFormatter1 = (item: { value: number }) => `${item.value}`;
+  // const valueFormatter2 = (item: { value: number }) =>
+  //   `$${formatBigInt(BigInt(item.value), 8)}`;
+  const valueFormatter2 = (item: { value: number }) => `$${item.value}`;
+
   useEffect(() => {
     if (isError) {
       toast.error(`User refued to connect wallet`, {
@@ -169,6 +331,18 @@ export default function BuyTokens() {
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className="container">
         <div className="container">
           <br />
@@ -178,8 +352,8 @@ export default function BuyTokens() {
             <div
               className="container my-5"
               style={{
-                width: "550px",
-                height: "530px",
+                width: "500px",
+                height: "570px",
                 backdropFilter: "blur(10px)",
                 boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                 // display: "flex",
@@ -195,38 +369,52 @@ export default function BuyTokens() {
                 0xeBec795c9c8bBD61FFc14A6662944748F299cAcf
               </p>
               <br />
-              <div style={{ width: "400px", marginLeft: "60px" }}>
+              <div style={{ width: "400px", marginLeft: "40px" }}>
                 <Form.Select
                   size="lg"
                   onChange={(e: any) => setCollateral(e.target.value)}
                   style={{ textAlign: "center" }}
                 >
-                  <option value="0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
+                  <option value="A2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
                     USDC
                   </option>
-                  <option value="0xc59E3633BAAC79493d908e63626716e204A45EdF">
+                  <option value="c59E3633BAAC79493d908e63626716e204A45EdF">
                     LINK
                   </option>
-                  <option value="0x694AA1769357215DE4FAC081bf1f309aDC325306">
+                  <option value="694AA1769357215DE4FAC081bf1f309aDC325306">
                     WETH
                   </option>
-                  <option value="0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43">
+                  <option value="1b44F3514812d835EB1BDB0acB33d3fA3351Ee43">
                     WBTC
                   </option>
-                  <option value="0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
+                  <option value="A2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
                     USDT
                   </option>
-                  <option value="0x14866185B1962B63C3Ea9E03Bc1da838bab34C19">
+                  <option value="14866185B1962B63C3Ea9E03Bc1da838bab34C19">
                     DAI
                   </option>
-                  <option value="0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
+                  <option value="A2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
                     EUR
                   </option>
-                  <option value="0x070bF128E88A4520b3EfA65AB1e4Eb6F0F9E6632">
+                  <option value="070bF128E88A4520b3EfA65AB1e4Eb6F0F9E6632">
                     FORTH
                   </option>
                 </Form.Select>
                 <br />
+                <br />
+                <InputGroup
+                  className="mb-3"
+                  style={{ width: "400px", marginLeft: "0px" }}
+                >
+                  <InputGroup.Text id="claimer">Claimer</InputGroup.Text>
+                  <Form.Control
+                    placeholder="Enter Claimer Address"
+                    aria-label="Username"
+                    aria-describedby="claimer"
+                    required
+                    onChange={(e: any) => setClaimer(e.target.value)}
+                  />
+                </InputGroup>
                 <br />
                 <InputGroup className="mb-3">
                   <InputGroup.Text id="amount">Amount</InputGroup.Text>
@@ -240,29 +428,43 @@ export default function BuyTokens() {
                   />
                 </InputGroup>
               </div>
-              <div className="my-5">
-                <p>
+              <div className="mt-4" style={{ lineHeight: "33px" }}>
+                <span>
                   Current goverenec token price :
-                  {formatBigIntForPrice(price.data ? price.data : BigInt(0))}$
-                </p>
-                <p>
+                  <b>
+                    {formatBigIntForPrice(price.data ? price.data : BigInt(0))}$
+                  </b>
+                </span>
+                <br />
+                <span>
                   Collateral you have to pay :{" "}
-                  {formatBigInt(toPay.data ? toPay.data : BigInt(0), 18)} tokens
-                </p>
-                <p>
+                  <b>
+                    {formatBigInt(toPay.data ? toPay.data : BigInt(0), 18)}{" "}
+                    tokens
+                  </b>
+                </span>
+                <br />
+                <span>
                   Total Balancce :{" "}
-                  {formatBigInt(
-                    goverenceTokenBalance.data
-                      ? goverenceTokenBalance.data
-                      : BigInt(0),
-                    18
-                  )}
-                </p>
+                  <b>
+                    {formatBigInt(
+                      goverenceTokenBalance.data
+                        ? goverenceTokenBalance.data
+                        : BigInt(0),
+                      18
+                    )}
+                  </b>
+                </span>
+                <br />
                 <br />
                 {account.status === "connected" ? (
                   <div className="d-flex justify-content-evenly">
-                    <Button variant="primary">Buy with Approve</Button>
-                    <Button variant="primary">Buy with Signature</Button>
+                    <Button variant="primary" onClick={buyTokensWithApprove}>
+                      Buy with Approve
+                    </Button>
+                    <Button variant="primary" onClick={buyTokensWithSignature}>
+                      Buy with Signature
+                    </Button>
                   </div>
                 ) : (
                   <Button
@@ -276,9 +478,9 @@ export default function BuyTokens() {
             </div>
           </div>
 
-          <div className="mx-5">
+          <div className="ml-5">
             <div
-              className=" mb-5 my-5"
+              className="mb-5 my-5"
               style={{
                 display: "flex",
                 alignContent: "space-evenly",
@@ -337,14 +539,15 @@ export default function BuyTokens() {
                       paddingAngle: 30,
                       // arcLabelRadius: 30,
                     },
-                    valueFormatter,
+                    valueFormatter: valueFormatter1,
                   },
                 ]}
                 width={500}
                 height={200}
               />
-              {/* add the table label at top/below for two charts */}
             </div>
+            {/* add the table label at top/below for two charts */}
+
             <div>
               <PieChart
                 series={[
@@ -360,7 +563,7 @@ export default function BuyTokens() {
                       paddingAngle: 30,
                       // arcLabelRadius: 30,
                     },
-                    valueFormatter,
+                    valueFormatter: valueFormatter2,
                   },
                 ]}
                 width={350}

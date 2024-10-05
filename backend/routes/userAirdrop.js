@@ -214,34 +214,28 @@ router.delete(
   }
 );
 
-router.get(
-  "/getUserAirdrop",
-  [body("round"), body("user")],
-  async (req, res) => {
-    let success = false;
+router.get("/getUserAirdrop/:round/:user", [], async (req, res) => {
+  let success = false;
 
-    try {
-      const userAirdrop = await UserAirdrop.findOne({
-        round: req.body.round,
-        user: req.body.user,
-      });
+  try {
+    const userAirdrop = await UserAirdrop.findOne({
+      round: req.params.round,
+      user: req.params.user,
+    });
 
-      if (!userAirdrop) {
-        return res
-          .status(400)
-          .json({ success: success, error: "Airdrop not found" });
-      }
-
-      success = true;
-      res.json({ success: success, userAirdrop: userAirdrop });
-    } catch (error) {
-      console.error(error.message);
-      res
-        .status(500)
-        .send({ success: success, error: "Internal Server Error" });
+    if (!userAirdrop) {
+      return res
+        .status(400)
+        .json({ success: success, error: "Airdrop not found" });
     }
+
+    success = true;
+    res.json({ success: success, userAirdrop: userAirdrop });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ success: success, error: "Internal Server Error" });
   }
-);
+});
 
 router.get("/getAllUserAirdrop", [body("user")], async (req, res) => {
   let success = false;

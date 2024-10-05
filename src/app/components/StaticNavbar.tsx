@@ -8,6 +8,7 @@ import ProfileLogo from "../../images/profile-icon.png";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaWallet } from "react-icons/fa";
 
 export default function StaticNavbar() {
   const account = useAccount();
@@ -34,7 +35,7 @@ export default function StaticNavbar() {
       collapseOnSelect
       expand="lg"
       className="navbar-transparent fixed-top"
-      style={{ backdropFilter: "blur(10px)" }}
+      style={{ backdropFilter: "blur(5px)" }}
     >
       <ToastContainer
         position="top-right"
@@ -90,13 +91,20 @@ export default function StaticNavbar() {
             <Nav.Item className="mt-2">
               {account.status === "connected" ? (
                 <Button variant="primary" onClick={() => disconnect()}>
-                  Disconnect
+                  <FaWallet
+                    style={{ marginTop: "-5px", marginRight: "10px" }}
+                  />
+                  {account.address.slice(0, 6)}...
+                  {account.address.slice(38, 42)}
                 </Button>
               ) : (
                 <Button
                   variant="primary"
                   onClick={() => connect({ connector: connectors[0] })}
                 >
+                  <FaWallet
+                    style={{ marginTop: "-5px", marginRight: "10px" }}
+                  />
                   {status === "pending" ? `Connecting` : `Connect Wallet`}
                 </Button>
               )}
