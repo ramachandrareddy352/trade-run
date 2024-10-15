@@ -389,11 +389,11 @@ export default function Perpetuals() {
                   <option>DAI/USD</option>
                 </Form.Select>
               </div>
-              <div className="mx-4 mt-3" style={{ textAlign: "center" }}>
+              <div className="mx-4 mt-3">
                 <span style={{ color: "grey" }}>Spot Price</span>
                 <h6>$60,244.34</h6>
               </div>
-              <div className="mx-4 mt-3" style={{ textAlign: "center" }}>
+              <div className="mx-4  mt-3">
                 <span style={{ color: "grey" }}>
                   Available Liquidity(52%/48%)
                 </span>
@@ -404,7 +404,7 @@ export default function Perpetuals() {
                   <h6>SS $31.37M</h6>
                 </div>
               </div>
-              <div className="mx-4 mt-3" style={{ textAlign: "center" }}>
+              <div className="mx-4 mt-3">
                 <span style={{ color: "grey" }}>Open Interest(52%/48%)</span>
                 <div
                   style={{ display: "flex", justifyContent: "space-evenly" }}
@@ -413,11 +413,11 @@ export default function Perpetuals() {
                   <h6>SS $31.37M</h6>
                 </div>
               </div>
-              <div className="mx-4 mt-3" style={{ textAlign: "center" }}>
+              <div className="mx-2 mt-3">
                 <span style={{ color: "grey" }}>Total Volume</span>
                 <h6>$143.67M</h6>
               </div>
-              <div className="mx-4 mt-3" style={{ textAlign: "center" }}>
+              <div className="mx-2 mt-3">
                 <span style={{ color: "grey" }}>Total Orders</span>
                 <h6>2,564</h6>
               </div>
@@ -530,11 +530,11 @@ export default function Perpetuals() {
                       textDecoration: "none",
                     }}
                   />
-                  <Form.Select style={{ width: "90px", height: "50px" }}>
+                  <Form.Select style={{ width: "100px", height: "50px" }}>
                     <option>BTC</option>
                     <option>ETH</option>
                     <option>SOL</option>
-                    <option>DAI</option>
+                    <option>USDC</option>
                   </Form.Select>
                 </div>
               </div>
@@ -557,7 +557,7 @@ export default function Perpetuals() {
                   style={{ justifyContent: "space-between" }}
                 >
                   <h2>0.357</h2>
-                  <Form.Select style={{ width: "90px", height: "50px" }}>
+                  <Form.Select style={{ width: "100px", height: "50px" }}>
                     <option>BTC</option>
                     <option>ETH</option>
                     <option>SOL</option>

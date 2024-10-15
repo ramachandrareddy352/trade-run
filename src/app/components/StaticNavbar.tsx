@@ -58,33 +58,33 @@ export default function StaticNavbar() {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
-          <Nav className="me-auto">
+          <Nav className="me-auto my-2">
             <Nav.Link className="text-white" href="/futures">
               Futures
             </Nav.Link>
-            <Nav.Link href="/airdrop" className="text-white">
+            <Nav.Link href="/perpetuals" className="text-white">
               Perpetuals
             </Nav.Link>
-            <Nav.Link href="#features" className="text-white">
+            <Nav.Link href="/pools" className="text-white">
               Pools
             </Nav.Link>
-            <Nav.Link href="#pricing" className="text-white">
+            <Nav.Link href="/goverence" className="text-white">
               Goverence
             </Nav.Link>
-            <Nav.Link href="#features" className="text-white">
+            <Nav.Link href="docs" className="text-white">
               Docs
             </Nav.Link>
           </Nav>
           <Nav>
             {account.address ? (
-              <Nav.Item className="my-2 mx-4">
+              <Nav.Link href="/profile" className="mx-4">
                 <Image
                   src={ProfileLogo.src}
                   alt="Profile"
                   width={40}
                   height={40}
                 />
-              </Nav.Item>
+              </Nav.Link>
             ) : (
               <Nav.Item></Nav.Item>
             )}

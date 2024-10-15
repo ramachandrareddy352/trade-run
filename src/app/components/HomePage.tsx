@@ -2,6 +2,9 @@ import React from "react";
 import Image from "react-bootstrap/Image";
 import { Container, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import TodayVolume from "../../images/today-volume.jpg";
+import TotalVolume from "../../images/total-volume.jpg";
+import TotalUsers from "../../images/total-users.png";
 
 export const HomePage = () => {
   return (
@@ -33,11 +36,11 @@ export const HomePage = () => {
           >
             <div>
               <Image
-                src="/images/total-volume.jpg"
+                src={TotalVolume.src}
                 alt="img-1"
-                width={60}
-                height={60}
-                style={{ float: "left", marginTop: "15px" }}
+                width={70}
+                height={70}
+                style={{ float: "left", marginTop: "15px", marginLeft: "20px" }}
               ></Image>
               <div>
                 <p style={{ color: "grey", marginTop: "10px" }}>
@@ -56,13 +59,14 @@ export const HomePage = () => {
           >
             <div>
               <Image
-                src="/images/today-volume.jpg"
+                src={TodayVolume.src}
                 alt="img-1"
                 width={60}
                 height={60}
                 style={{
                   float: "left",
                   marginTop: "15px",
+                  marginLeft: "20px",
                 }}
               ></Image>
               <div>
@@ -82,11 +86,11 @@ export const HomePage = () => {
           >
             <div>
               <Image
-                src="/images/total-users.png"
+                src={TotalUsers.src}
                 alt="img-1"
                 width={60}
-                height={90}
-                style={{ float: "left", marginTop: "15px" }}
+                height={60}
+                style={{ float: "left", margin: "20px" }}
               ></Image>
               <div>
                 <p style={{ color: "grey", marginTop: "10px" }}>Total Users</p>

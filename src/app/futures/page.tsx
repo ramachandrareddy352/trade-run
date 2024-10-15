@@ -8,10 +8,52 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Modal from "react-bootstrap/Modal";
 import { FaCartArrowDown } from "react-icons/fa";
-import { LiaFileContractSolid } from "react-icons/lia";
-import { PiGpsFixBold } from "react-icons/pi";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { futuresAbi } from "@/abi/futuresAbi";
+import { erc20PermitAbi } from "@/abi/erc20PermitAbi";
+import { erc20MetadataAbi } from "@/abi/erc20MetadataAbi";
+import {
+  useAccount,
+  useConnect,
+  useReadContract,
+  useWriteContract,
+  useSignTypedData,
+  useBlock,
+} from "wagmi";
+import {
+  formatBigInt,
+  formatBigIntForPrice,
+} from "../constants/formatBigIntValues";
+import { UINT256_MAX, UINT32_MAX } from "../constants/values";
+
+interface Order {
+  initialPrice: string;
+  strikePrice: string;
+  createdDate: String;
+  expirationDate: string;
+  margin: number;
+  status: number;
+  collateral: [string];
+  amount: [string];
+}
+
+// Define the props type for the OrdersTable component
+interface OrdersTableProps {
+  orders: Order[];
+}
 
 export default function Futures() {
+  const account = useAccount();
+  const { connectors, connect, status, error, isError } = useConnect();
+
+  const {
+    data: hash,
+    writeContract,
+    isError: writeIsError,
+    error: writeError,
+  } = useWriteContract();
+
   const [items, setItems] = useState<Number[]>([1, 2, 3, 4, 5, 56]);
   const collateral = useState<String[]>(["USDC, AAVE, USDT, ETH, WBTC"]);
 
@@ -35,25 +77,21 @@ export default function Futures() {
     centerMode: true,
     infinite: true,
     centerPadding: "60px",
-    slidesToShow: 2,
+    slidesToShow: 3,
     speed: 500,
     autoplay: true,
   };
 
+  const orders: any = [
+    { collateral: "USDC", amount: "2456" },
+    { collateral: "WBTC", amount: "6.3" },
+    { collateral: "WETH", amount: "12.2" },
+    { collateral: "DAI", amount: "1327" },
+  ];
+
   return (
     <div>
-      <div
-        style={{
-          backgroundImage: 'url("/images/home-background.jpg")',
-          backgroundSize: "cover", // Ensures the background covers the entire page
-          backgroundPosition: "center", // Centers the image
-          backgroundRepeat: "no-repeat", // Avoids repeating the image
-          backgroundAttachment: "fixed", // Keeps the image fixed while scrolling
-          height: "100%", // Full viewport height
-          width: "100%", // Full viewport width
-          marginTop: "-60px",
-        }}
-      >
+      <div>
         <Modal
           show={show}
           onHide={handleClose}
@@ -128,9 +166,6 @@ export default function Futures() {
             <br />
             <br />
             <br />
-            <br />
-            <br />
-            <br />
             <p style={{ textIndent: "50px" }}>
               Create you To use a numbers array with useState in Next.js, you
               can follow these steps. This involves initializing the state with
@@ -166,7 +201,7 @@ export default function Futures() {
                 <div key={idx} style={{ width: 70 }}>
                   <Card
                     style={{
-                      width: "30rem",
+                      width: "22rem",
                       boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                       margin: 5,
                     }}
@@ -190,63 +225,13 @@ export default function Futures() {
                         <h6>15/10/24-12:00</h6>
                       </div>
                       <Card.Text>
-                        <Table striped bordered hover size="sm">
-                          <thead>
-                            <tr>
-                              <th>COLLATERAL</th>
-                              <th>AMOUNT</th>
-                              <th>Inital PRICE</th>
-                              <th>Current PRICE</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>Otto</td>
-                              <td>@mdo</td>
-                              <td>$12,456.34</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Thornton</td>
-                              <td>@fat</td>
-                              <td>$2,456.97</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>3</td>
-                              <td>@twitter</td>
-                              <td>$56.23</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
+                        <OrdersTable orders={orders} />
                       </Card.Text>
-                      <div className="d-flex justify-content-around">
+                      <div className="d-flex justify-content-between">
                         <span>Initial Price</span>
                         <h6>$23,678</h6>
                       </div>
-                      <div className="d-flex justify-content-evenly">
+                      <div className="d-flex justify-content-between">
                         <span>Strike Price</span>
                         <h6>$26,678</h6>
                       </div>
@@ -288,10 +273,10 @@ export default function Futures() {
             <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
-                <div key={idx} style={{ width: 30 }}>
+                <div key={idx} style={{ width: 70 }}>
                   <Card
                     style={{
-                      width: "30rem",
+                      width: "22rem",
                       boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                       margin: 5,
                     }}
@@ -315,57 +300,7 @@ export default function Futures() {
                         <h6>15/10/24-12:00</h6>
                       </div>
                       <Card.Text>
-                        <Table striped bordered hover size="sm">
-                          <thead>
-                            <tr>
-                              <th>COLLATERAL</th>
-                              <th>AMOUNT</th>
-                              <th>Inital PRICE</th>
-                              <th>Current PRICE</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>Otto</td>
-                              <td>@mdo</td>
-                              <td>$12,456.34</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Thornton</td>
-                              <td>@fat</td>
-                              <td>$2,456.97</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>3</td>
-                              <td>@twitter</td>
-                              <td>$56.23</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
+                        <OrdersTable orders={orders} />
                       </Card.Text>
                       <div className="d-flex justify-content-between">
                         <span>Initial Price</span>
@@ -385,7 +320,7 @@ export default function Futures() {
                           onClick={handleShow}
                           style={{ fontSize: "16px" }}
                         >
-                          Drop Contract
+                          Buy Contract
                         </Button>
                         <Button
                           variant="primary"
@@ -393,6 +328,9 @@ export default function Futures() {
                           style={{ fontSize: "16px" }}
                         >
                           Settle Contract
+                        </Button>
+                        <Button>
+                          <FaCartArrowDown />
                         </Button>
                       </div>
                       <div style={{ textAlign: "center" }}>
@@ -410,10 +348,10 @@ export default function Futures() {
             <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
-                <div key={idx} style={{ width: 30 }}>
+                <div key={idx} style={{ width: 70 }}>
                   <Card
                     style={{
-                      width: "30rem",
+                      width: "22rem",
                       boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                       margin: 5,
                     }}
@@ -437,57 +375,7 @@ export default function Futures() {
                         <h6>15/10/24-12:00</h6>
                       </div>
                       <Card.Text>
-                        <Table striped bordered hover size="sm">
-                          <thead>
-                            <tr>
-                              <th>COLLATERAL</th>
-                              <th>AMOUNT</th>
-                              <th>Inital PRICE</th>
-                              <th>Current PRICE</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>Otto</td>
-                              <td>@mdo</td>
-                              <td>$12,456.34</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Thornton</td>
-                              <td>@fat</td>
-                              <td>$2,456.97</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>3</td>
-                              <td>@twitter</td>
-                              <td>$56.23</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
+                        <OrdersTable orders={orders} />
                       </Card.Text>
                       <div className="d-flex justify-content-between">
                         <span>Initial Price</span>
@@ -500,6 +388,25 @@ export default function Futures() {
                       <div className="d-flex justify-content-between">
                         <span>Margin to Pay</span>
                         <h6>$3,477(5%)</h6>
+                      </div>
+                      <div className="d-flex justify-content-around my-2">
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Buy Contract
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Settle Contract
+                        </Button>
+                        <Button>
+                          <FaCartArrowDown />
+                        </Button>
                       </div>
                       <div style={{ textAlign: "center" }}>
                         <span>more info &rarr;</span>
@@ -516,10 +423,10 @@ export default function Futures() {
             <br />
             <Slider {...settings}>
               {items.map((item, idx) => (
-                <div key={idx} style={{ width: 30 }}>
+                <div key={idx} style={{ width: 70 }}>
                   <Card
                     style={{
-                      width: "30rem",
+                      width: "22rem",
                       boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
                       margin: 5,
                     }}
@@ -543,57 +450,7 @@ export default function Futures() {
                         <h6>15/10/24-12:00</h6>
                       </div>
                       <Card.Text>
-                        <Table striped bordered hover size="sm">
-                          <thead>
-                            <tr>
-                              <th>COLLATERAL</th>
-                              <th>AMOUNT</th>
-                              <th>Inital PRICE</th>
-                              <th>Current PRICE</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>Otto</td>
-                              <td>@mdo</td>
-                              <td>$12,456.34</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Thornton</td>
-                              <td>@fat</td>
-                              <td>$2,456.97</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>3</td>
-                              <td>@twitter</td>
-                              <td>$56.23</td>
-                              <td>
-                                $12,456.34
-                                <span
-                                  style={{ color: "grey", fontSize: "15px" }}
-                                >
-                                  (+0.25%)
-                                </span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
+                        <OrdersTable orders={orders} />
                       </Card.Text>
                       <div className="d-flex justify-content-between">
                         <span>Initial Price</span>
@@ -606,6 +463,25 @@ export default function Futures() {
                       <div className="d-flex justify-content-between">
                         <span>Margin to Pay</span>
                         <h6>$3,477(5%)</h6>
+                      </div>
+                      <div className="d-flex justify-content-around my-2">
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Buy Contract
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleShow}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Settle Contract
+                        </Button>
+                        <Button>
+                          <FaCartArrowDown />
+                        </Button>
                       </div>
                       <div style={{ textAlign: "center" }}>
                         <span>more info &rarr;</span>
@@ -621,3 +497,28 @@ export default function Futures() {
     </div>
   );
 }
+
+const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
+  return (
+    <Table striped bordered hover size="sm" style={{ textAlign: "center" }}>
+      <thead>
+        <tr style={{ position: "sticky", zIndex: 1 }}>
+          <th>COLLATERAL</th>
+          <th>AMOUNT</th>
+        </tr>
+      </thead>
+      {orders.length > 0 ? (
+        <tbody>
+          {orders.map((order) => (
+            <tr>
+              <td>{order.collateral}</td>
+              <td>{order.amount}</td>
+            </tr>
+          ))}
+        </tbody>
+      ) : (
+        <h1>NULL</h1>
+      )}
+    </Table>
+  );
+};

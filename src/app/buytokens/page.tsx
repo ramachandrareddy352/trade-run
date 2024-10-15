@@ -12,6 +12,7 @@ import {
 import { presaleAbi } from "@/abi/presaleAbi";
 import { goverenceTokenAbi } from "@/abi/goverenceTokenAbi";
 import { erc20PermitAbi } from "@/abi/erc20PermitAbi";
+import { erc20MetadataAbi } from "@/abi/erc20MetadataAbi";
 import {
   useAccount,
   useConnect,
@@ -24,7 +25,8 @@ import {
   formatBigInt,
   formatBigIntForPrice,
 } from "../constants/formatBigIntValues";
-import { sepolia } from "viem/chains";
+import { UINT256_MAX, UINT32_MAX } from "../constants/values";
+import { ethers } from "ethers";
 
 export default function BuyTokens() {
   const account = useAccount();
@@ -34,8 +36,6 @@ export default function BuyTokens() {
   const [amount, setAmount] = useState<bigint>();
   const [collateral, setCollateral] = useState<String>();
   const [claimer, setClaimer] = useState<String>();
-
-  console.log(blockNumber.data?.timestamp);
 
   const {
     data: hash,
@@ -47,16 +47,26 @@ export default function BuyTokens() {
   const [signature, setSignature] = useState<String>("");
 
   const handlePermitSign = async () => {
-    const tokenAddress = "YourTokenAddress";
-    const spender = "0xSpenderAddress";
-    const nonce = 0; // Get this from the token contract (EIP-2612's `nonces` function)
-    const deadline = Math.floor(Date.now() / 1000) + 3600; // One hour from now
+    const tokenAddress = collateral;
+    const spender = PRESALE_CONTRACT;
+    const nonce = useReadContract({
+      abi: erc20PermitAbi,
+      address: `0x${tokenAddress}`,
+      functionName: "nonces",
+      args: [`0x${account.address}`],
+    });
+    const deadline = UINT32_MAX;
 
     // Create the domain for EIP-712
     const domain = {
-      name: "Your Token Name",
+      name: useReadContract({
+        abi: erc20MetadataAbi,
+        address: `0x${tokenAddress}`,
+        functionName: "name",
+        args: [],
+      }),
       version: "1",
-      chainId: 1, // Mainnet or the chain ID you're working on
+      chainId: 11155111, // Mainnet or the chain ID you're working on
       verifyingContract: `0x${tokenAddress}`,
     };
 
@@ -64,7 +74,7 @@ export default function BuyTokens() {
     const value = {
       owner: account.address,
       spender: spender,
-      value: BigInt(100), // Number of tokens to approve
+      value: UINT256_MAX, // Number of tokens to approve
       nonce: nonce,
       deadline: deadline,
     };
@@ -81,14 +91,14 @@ export default function BuyTokens() {
     };
 
     try {
-      // Sign the typed data (EIP-2612 permit)
+      // Sign the typed data (EIP-712 permit)
       const signature = await signTypedDataAsync({
         domain,
         types,
         value,
       });
       console.log("Signature:", signature);
-      setSignature(`0x${signature}`);
+      setSignature(signature);
 
       // Now you can use this `signature` to submit it on-chain to the contract
     } catch (error) {
@@ -101,6 +111,8 @@ export default function BuyTokens() {
       try {
         await handlePermitSign();
 
+        const { v, r, s } = ethers.utils.splitSignature(`0x${signature}`);
+
         writeContract({
           address: PRESALE_CONTRACT,
           abi: presaleAbi,
@@ -109,10 +121,10 @@ export default function BuyTokens() {
             `0x${collateral}`,
             `0x${claimer}`,
             BigInt(amount ? amount : 0),
-            BigInt(0),
-            0,
-            "0x00",
-            "0x00",
+            BigInt(UINT32_MAX),
+            v,
+            `0x${r}`,
+            `0x${s}`,
           ],
         });
 
@@ -159,12 +171,7 @@ export default function BuyTokens() {
           address: `0x${collateral}`,
           abi: erc20PermitAbi,
           functionName: "approve",
-          args: [
-            `0x${PRESALE_CONTRACT}`,
-            BigInt(
-              115792089237316195423570985008687907853269984665640564039457584007913129639935
-            ),
-          ],
+          args: [`0x${PRESALE_CONTRACT}`, BigInt(UINT256_MAX)],
         });
         writeContract({
           address: PRESALE_CONTRACT,
@@ -248,6 +255,10 @@ export default function BuyTokens() {
     args: [`0x${account.address}`, BigInt(collateralInUSD)],
   });
 
+  const [balanceInUSD, setBalanceInUSD] = useState<BigInt[]>([]);
+  const tokens = ["WETH", "WBTC", "LINK", "USDC", "USDT", "DAI"];
+  let totalBalance: bigint = BigInt(0);
+
   const platform1 = [
     {
       label: "Tokens solded",
@@ -271,28 +282,28 @@ export default function BuyTokens() {
   ];
   const platform2 = [
     {
-      label: "USDC",
-      value: 467,
-    },
-    {
-      label: "DAI",
-      value: 120,
-    },
-    {
       label: "WETH",
-      value: 47,
+      value: Number(balanceInUSD[0]),
     },
     {
       label: "WBTC",
-      value: 12,
+      value: Number(balanceInUSD[1]),
     },
     {
       label: "LINK",
-      value: 267,
+      value: Number(balanceInUSD[2]),
+    },
+    {
+      label: "USDC",
+      value: Number(balanceInUSD[3]),
     },
     {
       label: "USDT",
-      value: 520,
+      value: Number(balanceInUSD[4]),
+    },
+    {
+      label: "DAI",
+      value: Number(balanceInUSD[5]),
     },
   ];
   const valueFormatter1 = (item: { value: number }) => `${item.value}`;
@@ -314,20 +325,25 @@ export default function BuyTokens() {
       });
       console.log(error);
     }
-    if (writeIsError && account.status === "connected") {
-      toast.error(`Claiming Airdrop Tokens Failed`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      });
-      console.log(writeError);
+
+    async function fetchBalances() {
+      const balances = await Promise.all(
+        tokens.map(async (token) => {
+          const balance = useReadContract({
+            abi: presaleAbi,
+            address: PRESALE_CONTRACT,
+            functionName: "userBalance",
+            args: [`0x${account.address}`, `0x${token}`],
+          });
+          totalBalance += BigInt(balance.data ? balance.data : 0);
+          return BigInt(balance.data ? balance.data : 0);
+        })
+      );
+      setBalanceInUSD(balances);
     }
-  }, [isError, error, writeError]);
+
+    fetchBalances();
+  }, [isError, error, account.address]);
 
   return (
     <div>
@@ -392,12 +408,6 @@ export default function BuyTokens() {
                   </option>
                   <option value="14866185B1962B63C3Ea9E03Bc1da838bab34C19">
                     DAI
-                  </option>
-                  <option value="A2F78ab2355fe2f984D808B5CeE7FD0A93D5270E">
-                    EUR
-                  </option>
-                  <option value="070bF128E88A4520b3EfA65AB1e4Eb6F0F9E6632">
-                    FORTH
                   </option>
                 </Form.Select>
                 <br />
@@ -548,28 +558,34 @@ export default function BuyTokens() {
             </div>
             {/* add the table label at top/below for two charts */}
 
-            <div>
-              <PieChart
-                series={[
-                  {
-                    data: platform2,
-                    highlightScope: { fade: "global", highlight: "item" },
-                    faded: {
-                      innerRadius: 30,
-                      additionalRadius: -30,
-                      color: "white",
-                      // outerRadius: 30,
-                      // cornerRadius: 30,
-                      paddingAngle: 30,
-                      // arcLabelRadius: 30,
+            {totalBalance == BigInt(0) ? (
+              <div>
+                <h4>Nothing to show</h4>
+              </div>
+            ) : (
+              <div>
+                <PieChart
+                  series={[
+                    {
+                      data: platform2,
+                      highlightScope: { fade: "global", highlight: "item" },
+                      faded: {
+                        innerRadius: 30,
+                        additionalRadius: -30,
+                        color: "white",
+                        // outerRadius: 30,
+                        // cornerRadius: 30,
+                        paddingAngle: 30,
+                        // arcLabelRadius: 30,
+                      },
+                      valueFormatter: valueFormatter2,
                     },
-                    valueFormatter: valueFormatter2,
-                  },
-                ]}
-                width={350}
-                height={200}
-              />
-            </div>
+                  ]}
+                  width={350}
+                  height={200}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -58,9 +58,8 @@ export default function Airdrop() {
             args: [roundID, `0x${claimer}`, amount, json.userAirdrop.proofs],
           });
 
-          const claimResponse = await fetch(
-            `http://127.0.0.1:5000/api/userAirdrop/claimAirdrop`,
-            {
+          if (hash) {
+            await fetch(`http://127.0.0.1:5000/api/userAirdrop/claimAirdrop`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -70,10 +69,7 @@ export default function Airdrop() {
                 user: `0x${claimer}`,
                 transactionHash: `0x${hash}`,
               }),
-            }
-          );
-          const claimJson = await claimResponse.json();
-          if (claimJson.success) {
+            });
             toast.success(`Airdrop is claimed successfully`, {
               position: "top-right",
               autoClose: 5000,
@@ -85,7 +81,7 @@ export default function Airdrop() {
               theme: "light",
             });
           } else {
-            toast.error(`${claimJson.error}`, {
+            return toast.error(`Claiming Airdrop Tokens Failed`, {
               position: "top-right",
               autoClose: 5000,
               hideProgressBar: false,
@@ -97,7 +93,7 @@ export default function Airdrop() {
             });
           }
         } else {
-          toast.error(`${json.error}`, {
+          return toast.error(`${json.error}`, {
             position: "top-right",
             autoClose: 5000,
             hideProgressBar: false,
@@ -109,7 +105,7 @@ export default function Airdrop() {
           });
         }
       } catch (error) {
-        toast.error(`${error}`, {
+        return toast.error(`${error}`, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -169,20 +165,7 @@ export default function Airdrop() {
       });
       console.log(error);
     }
-    if (writeIsError && account.status === "connected") {
-      toast.error(`Claiming Airdrop Tokens Failed`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      });
-      console.log(writeError);
-    }
-  }, [isError, error, writeError]);
+  }, [isError, error]);
 
   const platforms = [
     {
@@ -239,7 +222,7 @@ export default function Airdrop() {
                 width: "500px",
                 height: "550px",
                 backdropFilter: "blur(10px)",
-                boxShadow: "5px 4px 10px rgba(135, 206, 235, 0.7)",
+                boxShadow: "10px 10px 25px rgba(135, 206, 235, 0.7)",
                 // display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -399,7 +382,7 @@ export default function Airdrop() {
                   ]}
                   height={200}
                 />
-                <Link href="/">
+                <Link href="/airdrop/info">
                   <p
                     style={{
                       marginLeft: "250px",
