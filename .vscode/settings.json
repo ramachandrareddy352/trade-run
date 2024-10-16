@@ -1,0 +1,5 @@
+{
+    "security.olympix.project.includePath": "\\src,\\contracts",
+    "security.olympix.project.testsPath": "",
+    "security.olympix.project.analyzeWholeProject": true
+}
